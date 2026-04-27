@@ -1,82 +1,70 @@
 import { useIsFetching } from "@tanstack/react-query";
-import { useTodos, useTodosIds } from "../services/queries";
 import {
-  useUpdateTodo,
   useCreateTodo,
   useDeleteTodo,
-} from "../services/mutation";
+  useTodos,
+  useUpdateTodo,
+} from "../features/todos/hooks";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import type { Todo } from "../types/todo";
+import type { CreateTodoInput, Todo } from "../features/todos/types";
 
-export default function Page() {
-  const query = useTodosIds();
-  // this is a global state that react query provide to us to know if there is any query in pending mode or not
+export default function TodoPage() {
+  const todosQuery = useTodos();
   const isFetching = useIsFetching();
-  const queries = useTodos(query.data);
-
   const createMutation = useCreateTodo();
-  const { register, handleSubmit } = useForm<Todo>();
-  const handleCreateTodoSubmit: SubmitHandler<Todo> = (data) => {
-    createMutation.mutate(data);
-  };
-
   const updateMutation = useUpdateTodo();
-  const handleMarkedAsCompletedSubmit = (data: Todo | undefined) => {
-    if (data) {
-      updateMutation.mutate({ ...data, completed: true });
-    }
+  const deleteMutation = useDeleteTodo();
+
+  const { register, handleSubmit, reset } = useForm<CreateTodoInput>({
+    defaultValues: {
+      title: "",
+      completed: false,
+    },
+  });
+
+  const handleCreateTodoSubmit: SubmitHandler<CreateTodoInput> = (data) => {
+    createMutation.mutate(data, {
+      onSuccess: () => reset(),
+    });
   };
 
-  const deleteMutation = useDeleteTodo();
+  const handleMarkedAsCompletedSubmit = (todo: Todo) => {
+    updateMutation.mutate({ id: todo.id, completed: true });
+  };
+
   const handleDeleteSubmit = (id: number) => {
     deleteMutation.mutate(id);
   };
-  // const handleDeleteSubmit = async (id: number) => {
-  //   await deleteMutation.mutateAsync(id);
-  //   consoole.log("success");
-  // };
 
   return (
     <>
-      {/*
-     a function of a query that responsible for talking to the backend 
-     which return a promise 
-     */}
-      <p>Query function status : {query.fetchStatus}</p>
-      {/* 
-      status about data which is success , pending or error mode
-      */}
-      <p>Query function data status : {query.status}</p>
+      <h2>Todos</h2>
+      <p>Query function status: {todosQuery.fetchStatus}</p>
+      <p>Query function data status: {todosQuery.status}</p>
       <p>Global isFetching: {isFetching}</p>
       <hr />
-      {query.isPending && <span>Loading...</span>}
-      {query.isError && <span>Error: {query.error.message} </span>}
-      {query.isSuccess && (
-        <>
-          <h4>Todos Id :</h4>
-          {query.data?.join(", ")}
-        </>
-      )}
-      <hr />
+      {todosQuery.isPending && <span>Loading...</span>}
+      {todosQuery.isError && <span>Error: {todosQuery.error.message}</span>}
 
       <ul>
-        {queries.map(({ data }) => (
-          <li key={data?.id}>
-            <div>Id: {data?.id}</div>
+        {todosQuery.data?.map((todo) => (
+          <li key={todo.id}>
+            <div>Id: {todo.id}</div>
             <span>
-              <strong>Title: </strong> {data?.title}{" "}
+              <strong>Title: </strong> {todo.title}{" "}
             </span>
             <button
-              onClick={() => handleMarkedAsCompletedSubmit(data)}
-              disabled={data?.completed}
+              onClick={() => handleMarkedAsCompletedSubmit(todo)}
+              disabled={todo.completed || updateMutation.isPending}
             >
-              {data?.completed ? "Completed" : "Mark as completed"}
+              {todo.completed ? "Completed" : "Mark as completed"}
             </button>
-            {data?.id && (
-              <button onClick={() => handleDeleteSubmit(data.id!)}>
-                Delete
-              </button>
-            )}
+            <button
+              onClick={() => handleDeleteSubmit(todo.id)}
+              disabled={deleteMutation.isPending}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>

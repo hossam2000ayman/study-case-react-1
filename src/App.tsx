@@ -1,4 +1,5 @@
 import CommentPage from "./components/CommentPage";
+import TodoPage from "./components/TodoPage";
 
 // function App() {
 //   const [data, setData] = useState([]);
@@ -18,9 +19,10 @@ import CommentPage from "./components/CommentPage";
 
 export default function App() {
   return (
-    <>
-      {/* <TodoPage /> */}
+    <main>
+      <TodoPage />
+      <hr />
       <CommentPage />
-    </>
+    </main>
   );
 }

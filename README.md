@@ -1,5 +1,32 @@
 # React + TypeScript + Vite
 
+## Local Prisma API
+
+This project now uses React Query on the client and Prisma on a local Express API.
+
+```txt
+React component
+  -> feature hook
+  -> feature api.ts
+  -> Express route
+  -> repository
+  -> Prisma Client
+  -> SQLite
+```
+
+Useful commands:
+
+```bash
+npm run dev:all          # start Vite and the API together
+npm run dev              # start only Vite
+npm run dev:api          # start only the API
+npm run prisma:migrate   # apply Prisma migrations
+npm run db:seed          # reset local seed data
+npm run prisma:studio    # inspect SQLite data
+```
+
+Copy `.env.example` to `.env` if the local environment file is missing.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
